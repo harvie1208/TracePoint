@@ -1,0 +1,28 @@
+apply plugin: 'groovy'
+apply plugin: 'maven'
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation 'com.android.tools.build:gradle:3.0.0'
+}
+repositories {
+    jcenter()
+    google()
+}
+
+
+uploadArchives {
+
+    repositories {
+        mavenDeployer {
+            String repoUrl = 'http://nexus.yidianling.com/repository/AndroidReleases/'
+            repository(url: repoUrl) {
+                authentication(userName: 'admin', password: 'fjoi#1+#@')
+            }
+            pom.version = '0.0.5'
+            pom.artifactId = 'notracepoint-gradle-plugin'
+            pom.groupId = "com.ydl"
+        }
+    }
+}
