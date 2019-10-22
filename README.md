@@ -1,6 +1,8 @@
 # TracePoint
 android 无埋点数据采集gradle插件（ASM字节码插桩）
 
+掘金：https://juejin.im/post/5da82ea4e51d452499484345
+
 ### 接入流程：
 
 #### 1.在项目根目录build.gradle中引入插件
@@ -99,3 +101,6 @@ class InterceptEventHanlder{
 build一下就会在app/build/trace-point文件中看到修改后的代码
 
 run一下，浏览页面或是点击按钮时就会看到相关log输出
+
+
+欢迎star 下期继续优化
