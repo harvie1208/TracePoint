@@ -1,7 +1,7 @@
 # TracePoint
 android 无埋点数据采集gradle插件（ASM字节码插桩）
 
-掘金原理篇：https://juejin.im/post/5da82ea4e51d452499484345
+掘金原理篇：https://juejin.im/post/5dae95c4f265da5bb7466357
 
 ### 接入流程：
 
