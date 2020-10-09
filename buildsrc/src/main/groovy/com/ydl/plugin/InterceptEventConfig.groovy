@@ -14,7 +14,7 @@ class InterceptEventConfig{
     public static final HashMap<String, MethodCode> activityMethods = new HashMap<>()
 
     static {
-        interfaceMethods.put("onClick(Landroid/view/View;)V",new MethodCode(
+        interfaceMethods.put("onClick(Landroid/view/View;)V", new MethodCode(
                 "onClick",
                 "(Landroid/view/View;)V",
                 "onClick",
@@ -29,24 +29,48 @@ class InterceptEventConfig{
 
     static {
         //viewpage
-        fragmentMethods.put('setUserVisibleHint(Z)V',new MethodCode(
+        fragmentMethods.put('android/app/Fragment$setUserVisibleHint(Z)V',new MethodCode(
                 'setUserVisibleHint',
                 '(Z)V',
                 'setUserVisibleHint',
                 '(Landroid/app/Fragment;Z)V',
-                '',//parent省略，均为 android/app/Fragment 或 android/support/v4/app/Fragment
+                '',//parent省略
                 0,
                 2,
                 [Opcodes.ALOAD,Opcodes.IALOAD]
         ))
 
         //FragmentTransaction方式
-        fragmentMethods.put('onHiddenChanged(Z)V',new MethodCode(
+        fragmentMethods.put('android/app/Fragment$onHiddenChanged(Z)V',new MethodCode(
                 'onHiddenChanged',
                 '(Z)V',
                 'onHiddenChanged',
                 '(Landroid/app/Fragment;Z)V',
-                '',//parent省略，均为 android/app/Fragment 或 android/support/v4/app/Fragment
+                '',//parent省略
+                0,
+                2,
+                [Opcodes.ALOAD,Opcodes.IALOAD]
+        ))
+
+        //viewpage
+        fragmentMethods.put('androidx/fragment/app/Fragment$setUserVisibleHint(Z)V',new MethodCode(
+                'setUserVisibleHint',
+                '(Z)V',
+                'setUserVisibleHint',
+                '(Landroidx/fragment/app/Fragment$;Z)V',
+                '',//parent省略
+                0,
+                2,
+                [Opcodes.ALOAD,Opcodes.IALOAD]
+        ))
+
+        //FragmentTransaction方式
+        fragmentMethods.put('androidx/fragment/app/Fragment$onHiddenChanged(Z)V',new MethodCode(
+                'onHiddenChanged',
+                '(Z)V',
+                'onHiddenChanged',
+                '(Landroidx/fragment/app/Fragment$;Z)V',
+                '',//parent省略
                 0,
                 2,
                 [Opcodes.ALOAD,Opcodes.IALOAD]
@@ -54,7 +78,7 @@ class InterceptEventConfig{
     }
 
     static {
-        activityMethods.put('onCreate(Landroid/os/Bundle;)V',new MethodCode(
+        activityMethods.put('android/app/Activity$onCreate(Landroid/os/Bundle;)V',new MethodCode(
                 'onCreate',
                 '(Landroid/os/Bundle;)V',
                 'activityOnCreate',
@@ -64,7 +88,7 @@ class InterceptEventConfig{
                 1,
                 [Opcodes.ALOAD]
         ))
-        activityMethods.put('onResume()V',new MethodCode(
+        activityMethods.put('android/app/Activity$onResume()V',new MethodCode(
                 'onResume',
                 '()V',
                 'activityOnResume',
@@ -74,6 +98,28 @@ class InterceptEventConfig{
                 1,
                 [Opcodes.ALOAD]
         ))
+
+        activityMethods.put('androidx/appcompat/app/AppCompatActivity$onCreate(Landroid/os/Bundle;)V',new MethodCode(
+                'onCreate',
+                '(Landroid/os/Bundle;)V',
+                'activityOnCreate',
+                '(Landroidx/appcompat/app/AppCompatActivity;)V',
+                '',
+                1,
+                1,
+                [Opcodes.ALOAD]
+        ))
+        activityMethods.put('androidx/appcompat/app/AppCompatActivity$onResume()V',new MethodCode(
+                'onResume',
+                '()V',
+                'activityOnResume',
+                '(Landroidx/appcompat/app/AppCompatActivity;)V',
+                '',
+                1,
+                1,
+                [Opcodes.ALOAD]
+        ))
+
     }
 
 }

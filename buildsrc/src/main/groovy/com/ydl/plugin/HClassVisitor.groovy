@@ -20,7 +20,7 @@ class HClassVisitor extends ClassVisitor{
     private HashSet<String> methodName = new HashSet<>();
 
     HClassVisitor(ClassVisitor cv){
-        super(Opcodes.ASM5,cv)
+        super(Opcodes.ASM7,cv)
         this.classVisitor = cv
     }
 
@@ -37,7 +37,8 @@ class HClassVisitor extends ClassVisitor{
     void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         this.interfaces = interfaces
         this.superName = superName
-        this.className = name.contains('$')?name.substring(0,name.indexOf('$')):name
+        this.className = name
+//        this.className = name.contains('$')?name.substring(0,name.indexOf('$')):name
         super.visit(version, access, name, signature, superName, interfaces)
     }
 
@@ -54,7 +55,7 @@ class HClassVisitor extends ClassVisitor{
     MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         MethodVisitor mv = cv.visitMethod( access,  name,  desc,  signature, exceptions)
 
-        String nameDesc = name+desc
+        String superNameDesc = superName+'$'+name+desc
 
         return new MethodVisitor(this.api, mv){
 
@@ -64,7 +65,7 @@ class HClassVisitor extends ClassVisitor{
                 //点击事件
                 if (interfaces!=null && interfaces.length>0){
 
-                    MethodCode methodCode = InterceptEventConfig.interfaceMethods.get(nameDesc)
+                    MethodCode methodCode = InterceptEventConfig.interfaceMethods.get(name+desc)
                     if(methodCode!=null){
                         mv.visitVarInsn(Opcodes.ALOAD, 1)
                         mv.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCode.agentName, methodCode.agentDesc, false)
@@ -73,9 +74,9 @@ class HClassVisitor extends ClassVisitor{
 
                 //activity生命周期hook
                 if (instanceOfActivity(superName)){
-                    MethodCode methodCode = InterceptEventConfig.activityMethods.get(nameDesc)
+                    MethodCode methodCode = InterceptEventConfig.activityMethods.get(superNameDesc)
                     if (methodCode!=null){
-                        methodName.add(nameDesc)
+                        methodName.add(superNameDesc)
                         mv.visitVarInsn(Opcodes.ALOAD, 0)
                         mv.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCode.agentName, methodCode.agentDesc, false)
                     }
@@ -87,17 +88,13 @@ class HClassVisitor extends ClassVisitor{
             void visitInsn(int opcode) {
                 //fragment 页面hook
                 if (instanceOfFragemnt(superName)) {
-                    MethodCode methodCode = InterceptEventConfig.fragmentMethods.get(nameDesc)
+                    MethodCode methodCode = InterceptEventConfig.fragmentMethods.get(superNameDesc)
                     if (methodCode != null) {
-                        methodName.add(nameDesc)
+                        methodName.add(superNameDesc)
                         if (opcode == Opcodes.RETURN) {
                             mv.visitVarInsn(Opcodes.ALOAD, 0)
                             mv.visitVarInsn(Opcodes.ILOAD, 1)
-                            if (superName == 'android/app/Fragment'){
-                                mv.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCode.agentName, '(Landroid/app/Fragment;Z)V', false)
-                            }else {
-                                mv.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCode.agentName, '(Landroid/support/v4/app/Fragment;Z)V', false)
-                            }
+                            mv.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCode.agentName, methodCode.agentDesc, false)
                         }
                     }
                 }
@@ -114,25 +111,24 @@ class HClassVisitor extends ClassVisitor{
             while (iterator.hasNext()) {
                 String key = iterator.next()
                 MethodCode methodCell = InterceptEventConfig.activityMethods.get(key)
-                if (methodName.contains(key)) {
+
+                if (methodName.contains(key) || !key.contains(superName)) {
                     continue
                 }
                 //添加需要的生命周期方法
-                if (key == 'onCreate(Landroid/os/Bundle;)V' || key == 'onResume()V'){
-                    MethodVisitor methodVisitor = classVisitor.visitMethod(Opcodes.ACC_PUBLIC, methodCell.name, methodCell.desc, null, null)
-                    methodVisitor.visitCode()
-                    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+                MethodVisitor methodVisitor = classVisitor.visitMethod(Opcodes.ACC_PUBLIC, methodCell.name, methodCell.desc, null, null)
+                methodVisitor.visitCode()
+                methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
 
-                    methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
-                    if (key == 'onCreate(Landroid/os/Bundle;)V') {
-                        methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
-                    }
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superName, methodCell.name, methodCell.desc, false)
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCell.agentName, methodCell.agentDesc, false)
-                    methodVisitor.visitInsn(Opcodes.RETURN)
-                    methodVisitor.visitMaxs(2, 2)
-                    methodVisitor.visitEnd()
+                methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
+                if (key.contains('onCreate(Landroid/os/Bundle;)V')) {
+                    methodVisitor.visitVarInsn(Opcodes.ALOAD, 1)
                 }
+                methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superName, methodCell.name, methodCell.desc, false)
+                methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCell.agentName, methodCell.agentDesc, false)
+                methodVisitor.visitInsn(Opcodes.RETURN)
+                methodVisitor.visitMaxs(2, 2)
+                methodVisitor.visitEnd()
             }
 
         }else if (instanceOfFragemnt(superName)){
@@ -140,7 +136,7 @@ class HClassVisitor extends ClassVisitor{
             while (iterator.hasNext()){
                 String key = iterator.next()
                 MethodCode methodCell = InterceptEventConfig.fragmentMethods.get(key)
-                if (methodName.contains(key)){
+                if (methodName.contains(key) || !key.contains(superName)){
                     continue
                 }
                 //添加需要的生命周期方法
@@ -151,11 +147,7 @@ class HClassVisitor extends ClassVisitor{
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superName, methodCell.name, methodCell.desc, false)
                 methodVisitor.visitVarInsn(Opcodes.ALOAD, 0)
                 methodVisitor.visitVarInsn(Opcodes.ILOAD, 1)
-                if (superName == 'android/app/Fragment'){
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCell.agentName, '(Landroid/app/Fragment;Z)V', false)
-                }else {
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCell.agentName, '(Landroid/support/v4/app/Fragment;Z)V', false)
-                }
+                methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, InterceptEventConfig.owner, methodCell.agentName, methodCell.agentDesc, false)
                 methodVisitor.visitInsn(Opcodes.RETURN)
                 methodVisitor.visitMaxs(2, 2)
                 methodVisitor.visitEnd()
@@ -169,11 +161,11 @@ class HClassVisitor extends ClassVisitor{
      * @param superName
      */
     private static boolean instanceOfFragemnt(String superName){
-        return superName == "android/app/Fragment" || superName == "android/support/v4/app/Fragment"
+        return superName == "android/app/Fragment" || superName == "androidx/fragment/app/Fragment"
     }
 
     private static boolean instanceOfActivity(String superName){
-        return superName == 'android/support/v7/app/AppCompatActivity' || superName == 'android/app/Activity'
+        return superName == 'androidx/appcompat/app/AppCompatActivity' || superName == 'android/app/Activity'
     }
 
 }

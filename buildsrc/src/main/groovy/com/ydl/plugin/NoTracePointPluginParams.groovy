@@ -5,7 +5,7 @@ package com.ydl.plugin
  */
 class NoTracePointPluginParams {
     //插件名称，随意
-    String pluginName = ''
+    String pluginName = 'NoTracePointPlugin'
     /**
      * 需要修改的目标包名，默认主app module
      */
