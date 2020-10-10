@@ -3,6 +3,17 @@ android 无埋点数据采集gradle插件（ASM字节码插桩）
 
 掘金原理篇：https://juejin.im/post/5dae95c4f265da5bb7466357
 
+#### 更新记录：
+##### 0.2.0
+```
+1.去除v4、v7包支持
+2.支持androidx
+
+配置变动点：
+1.需要在gradle.properties中增加 android.enableD8.desugaring=false ，否则对lambda表达式不起作用
+2.事件接收类中activity和fragment导入类改为androidx包名下的，可参考demo app模块代码
+```
+
 ### 接入流程：
 
 #### 1.在项目根目录build.gradle中引入插件
